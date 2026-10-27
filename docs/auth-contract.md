@@ -64,4 +64,8 @@ SELECT id, nome, documento, ativo FROM clientes
 ```
 
 - **Coluna `ativo`:** ainda não existe. A sugestão é uma migration com `ativo Boolean @default(true)`. Enquanto ela não sair, a Lambda considera todo cliente ativo, então dá para testar sem esperar.
-- **Security group do RDS:** precisa liberar a entrada na porta `5432` a partir do security group da Lambda. Esse ID sai no output `lambda_security_group_id` deste repositório.
+- **Acesso ao RDS:** a Lambda roda em outra conta AWS e fora de VPC, então o RDS precisa de:
+  - `publicly_accessible = true`;
+  - SSL obrigatório (`rds.force_ssl = 1`, que já é o padrão no PostgreSQL 15 ou mais novo);
+  - entrada na porta `5432` liberada no security group. O IP da Lambda muda a cada execução, por isso a regra é `0.0.0.0/0`, e a proteção fica por conta de usuário, senha e SSL.
+- **`DATABASE_URL`:** deve usar o **endpoint público** do RDS.

@@ -165,7 +165,8 @@ jobs:
             echo "### 🚀 Deploy ${ENVIRONMENT}"
             echo "- API Gateway: ${API_ENDPOINT}"
             echo "- Autenticacao: \`POST $(terraform -chdir=terraform output -raw auth_url)\`"
-            echo "- SG da Lambda (liberar 5432 no RDS): \`$(terraform -chdir=terraform output -raw lambda_security_group_id)\`"
+            SG=$(terraform -chdir=terraform output -raw lambda_security_group_id)
+            if [ -n "$SG" ]; then echo "- SG da Lambda (liberar 5432 no RDS): \`$SG\`"; else echo "- Lambda fora de VPC (RDS via endpoint publico)"; fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: "💨 Smoke test"

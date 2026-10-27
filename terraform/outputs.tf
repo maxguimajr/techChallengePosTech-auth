@@ -9,8 +9,8 @@ output "auth_url" {
 }
 
 output "lambda_security_group_id" {
-  description = "SG da Lambda: liberar entrada 5432 a partir dele no SG do RDS (repo db-infra)"
-  value       = aws_security_group.lambda_auth.id
+  description = "SG da Lambda (so quando roda em VPC): liberar entrada 5432 a partir dele no SG do RDS"
+  value       = try(aws_security_group.lambda_auth[0].id, "")
 }
 
 output "auth_function_name" {

@@ -1,6 +1,8 @@
 locals {
   name_prefix = "oficina-auth-${var.environment}"
   dist_dir    = "${path.module}/../dist"
+  # Sem subnets a Lambda roda fora de VPC e acessa o RDS pelo endpoint publico (RDS em outra conta)
+  vpc_enabled = length(var.subnet_ids) > 0
 }
 
 data "aws_iam_role" "lambda" {
@@ -20,6 +22,8 @@ data "archive_file" "authorizer" {
 }
 
 resource "aws_security_group" "lambda_auth" {
+  count = local.vpc_enabled ? 1 : 0
+
   name        = "${local.name_prefix}-lambda"
   description = "Lambda de autenticacao - acesso de saida ao RDS"
   vpc_id      = var.vpc_id
@@ -54,9 +58,12 @@ resource "aws_lambda_function" "auth" {
   memory_size      = 256
   timeout          = 10
 
-  vpc_config {
-    subnet_ids         = var.subnet_ids
-    security_group_ids = [aws_security_group.lambda_auth.id]
+  dynamic "vpc_config" {
+    for_each = local.vpc_enabled ? [1] : []
+    content {
+      subnet_ids         = var.subnet_ids
+      security_group_ids = [aws_security_group.lambda_auth[0].id]
+    }
   }
 
   environment {

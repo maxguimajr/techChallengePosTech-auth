@@ -141,8 +141,10 @@ O Swagger da aplicação fica disponível pelo gateway em `GET $API/api/docs`.
 ## Decisões de design
 
 - **Lambda Authorizer em vez do JWT Authorizer nativo:** o authorizer nativo do HTTP API só aceita emissores OIDC com JWKS (RS256). Com HS256 e segredo compartilhado, que é o contrato combinado com a aplicação, a validação precisa ser feita numa Lambda.
-- **Segredos em variáveis de ambiente da Lambda, e não no Secrets Manager:**
-  - A Lambda roda dentro da VPC padrão para alcançar o RDS, e essa VPC não tem NAT.
-  - Acessar o Secrets Manager exigiria NAT ou um VPC endpoint, ambos pagos, o que não cabe no orçamento de US$50 do lab.
-  - As variáveis ficam criptografadas em repouso com KMS.
+- **Lambda em uma conta AWS separada da do banco:**
+  - A Lambda e o Gateway rodam na conta AWS Academy do responsável por este repositório. O RDS e o cluster ficam na conta do grupo.
+  - Assim os deploys deste repositório não dependem da sessão do lab de outra pessoa.
+  - Como o Learner Lab não permite VPC peering entre contas, a Lambda roda **fora de VPC** e conecta no **endpoint público do RDS**, com SSL obrigatório e senha forte.
+  - Para rodar na mesma conta do banco, pela rede privada, basta informar `vpc_id` e `subnet_ids` no `tfvars`.
+- **Segredos em variáveis de ambiente da Lambda, e não no Secrets Manager:** cada leitura do Secrets Manager custa e adiciona latência, e o orçamento do lab é de US$50. As variáveis ficam criptografadas em repouso com KMS.
 - **Consulta compatível com a migration do `ativo`:** a Lambda funciona antes e depois de a coluna ser adicionada em `clientes`.

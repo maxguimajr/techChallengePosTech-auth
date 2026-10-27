@@ -20,13 +20,15 @@ variable "lambda_role_name" {
 }
 
 variable "vpc_id" {
-  description = "VPC onde esta o RDS (VPC padrao da conta do lab)"
+  description = "VPC do RDS, quando Lambda e banco estao na mesma conta. Nulo = Lambda fora de VPC"
   type        = string
+  default     = null
 }
 
 variable "subnet_ids" {
-  description = "Subnets da VPC usadas pela Lambda de autenticacao para alcancar o RDS"
+  description = "Subnets para a Lambda alcancar o RDS pela rede privada. Vazio = Lambda fora de VPC (RDS publico)"
   type        = list(string)
+  default     = []
 }
 
 variable "database_url" {
